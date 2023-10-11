@@ -11,14 +11,28 @@ import java.util.zip.ZipOutputStream;
 public class Main {
     public static void main(String[] args) throws Exception {
         System.out.println("Hello world!");
-
-//        createTestFiles();
         var dir = new File("C:\\Users\\Administrator\\IdeaProjects\\demo-zip-file\\.file\\20231009213821");
-
+        var dir2 = new File("C:\\Users\\Administrator\\IdeaProjects\\demo-zip-file\\.file\\20231009213822");
+//        createTestFiles();
         //zipDir(dir);
+        //threadTest(dir, dir2);
 
-        List<File> files = populateFilesList(dir);
-        System.out.println(files);
+    }
+
+    private static void threadTest(File dir, File dir2) {
+        var t1 = new Thread(() -> {
+            List<File> files = populateFilesList(dir);
+            files.forEach(file -> System.out.println("t1" + file.getAbsolutePath()));
+        });
+        t1.setName("t1");
+
+        var t2 = new Thread(() -> {
+            List<File> files = populateFilesList(dir2);
+            files.forEach(file -> System.out.println("dir2 : " + file.getAbsolutePath()));
+        });
+        t2.setName("t2");
+        t2.start();
+        t1.start();
     }
 
     private static void zipDir(File sourceDir) {
@@ -91,20 +105,14 @@ public class Main {
     }
 
     private static List<File> populateFilesList(File dir) {
-
         class PopulateFiles {
+            final List<File> result = new ArrayList<>();
 
-            public PopulateFiles() {
-                System.out.println("PopulateFiles 构造" + dir.getPath());
+            PopulateFiles(File sourceDir) {
+                populateFilesList(sourceDir);
             }
 
-            private final List<File> result = new ArrayList<>();
-
-            public List<File> getFiles() {
-                return result;
-            }
-
-            private void populateFilesList(File dir) {
+            void populateFilesList(File dir) {
                 File[] files = dir.listFiles();
                 for (File file : files) {
                     if (file.isFile()) result.add(file);
@@ -113,9 +121,7 @@ public class Main {
             }
         }
 
-        var populateFiles = new PopulateFiles();
-        populateFiles.populateFilesList(dir);
-        return populateFiles.getFiles();
+        return new PopulateFiles(dir).result;
     }
 
 }
